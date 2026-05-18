@@ -4,10 +4,9 @@
 
 Безплатен, офлайн тракер на лични финанси — един HTML файл, който работи в браузъра без сървър, без регистрация, без абонамент. Данните се пазят в `localStorage` на браузъра. Създаден за хора с разпръснати активи (фондове, метали, крипто, кеш) и задължения (кредити), които искат да виждат цялата картина на едно място.
 
-**URL (production):** `https://tsvetanpetrov.com/portfolio/`
+**URL (production):** `[https://tsvetanpetrov.com/portfolio/](https://tsvetanpetrov.com/portfolio-app)`
 **Автор:** Цветан Петров
 **PayPal за подкрепа:** `https://paypal.me/sdevelopers`
-
 ---
 
 ## Файлова структура
@@ -15,9 +14,7 @@
 | Файл | Описание |
 |---|---|
 | `portfolio_app.html` | Самото приложение — React 18 + Tailwind + Chart.js, всичко inline |
-| `landing.html` | Landing page с документация, екрани, CTA за сваляне/отваряне |
-| `index.html` | Персонална страница на tsvetanpetrov.com |
-| `PROJECT.md` | Тази документация |
+| `README.md` | Тази документация |
 
 ---
 
