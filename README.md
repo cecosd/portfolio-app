@@ -4,7 +4,7 @@
 
 Безплатен, офлайн тракер на лични финанси — един HTML файл, който работи в браузъра без сървър, без регистрация, без абонамент. Данните се пазят в `localStorage` на браузъра. Създаден за хора с разпръснати активи (фондове, метали, крипто, кеш) и задължения (кредити), които искат да виждат цялата картина на едно място.
 
-**URL (production):** `[https://tsvetanpetrov.com/portfolio/](https://tsvetanpetrov.com/portfolio-app)`
+**URL (production):** `https://tsvetanpetrov.com/portfolio/`
 **Автор:** Цветан Петров
 **PayPal за подкрепа:** `https://paypal.me/sdevelopers`
 ---
@@ -165,7 +165,7 @@ SVG shield + pie chart + diamond accent.
 
 Newsreader + Outfit, топла палитра. Hero → За мен (2 карти) → Проекти (тъмна секция) → Контакт (LinkedIn + email).
 
-LinkedIn: `[https://www.linkedin.com/in/tsvetanpetrov/](https://www.linkedin.com/in/tsvetanpetrov/)`
+LinkedIn: `https://www.linkedin.com/in/tsvetanpetrov/`
 
 ---
 
