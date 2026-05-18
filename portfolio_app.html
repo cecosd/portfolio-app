@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="bg" class="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6d28d9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Моето Портфолио</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 108'><path d='M50,0 L96,22 L96,62 Q96,84 50,104 Q4,84 4,62 L4,22 Z' fill='%236d28d9'/><circle cx='50' cy='48' r='30' fill='%238b5cf6'/><path d='M50,48 L50,18 A30,30 0 0,1 77,33 Z' fill='%23a78bfa'/><path d='M50,48 L77,33 A30,30 0 0,1 80,48 Z' fill='%23fbbf24'/><path d='M50,48 L80,48 A30,30 0 0,1 68,71 Z' fill='%2334d399'/><path d='M50,48 L68,71 A30,30 0 0,1 50,78 Z' fill='%2338bdf8'/><circle cx='50' cy='48' r='10' fill='%236d28d9'/><polygon points='50,41 56,48 50,55 44,48' fill='%23c4b5fd'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 108'><path d='M50,0 L96,22 L96,62 Q96,84 50,104 Q4,84 4,62 L4,22 Z' fill='%236d28d9'/><circle cx='50' cy='48' r='30' fill='%238b5cf6'/><path d='M50,48 L50,18 A30,30 0 0,1 77,33 Z' fill='%23a78bfa'/><path d='M50,48 L77,33 A30,30 0 0,1 80,48 Z' fill='%23fbbf24'/><path d='M50,48 L80,48 A30,30 0 0,1 68,71 Z' fill='%2334d399'/><path d='M50,48 L68,71 A30,30 0 0,1 50,78 Z' fill='%2338bdf8'/><circle cx='50' cy='48' r='10' fill='%236d28d9'/><polygon points='50,41 56,48 50,55 44,48' fill='%23c4b5fd'/></svg>">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22%D0%9C%D0%BE%D0%B5%D1%82%D0%BE%20%D0%9F%D0%BE%D1%80%D1%82%D1%84%D0%BE%D0%BB%D0%B8%D0%BE%22%2C%22short_name%22%3A%22%D0%9F%D0%BE%D1%80%D1%82%D1%84%D0%BE%D0%BB%D0%B8%D0%BE%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f0f4f8%22%2C%22theme_color%22%3A%22%236d28d9%22%7D">
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#f0f4f8 0%,#e8eef5 100%);min-height:100vh;transition:background .3s}
+  .dark body,html.dark body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#e2e8f0}
+  *{-webkit-tap-highlight-color:transparent}
+  .scrollbar-thin::-webkit-scrollbar{height:6px}.scrollbar-thin::-webkit-scrollbar-thumb{background:rgba(0,0,0,.2);border-radius:3px}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn .2s ease-out}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.slide-up{animation:slideUp .4s ease-out}
+</style>
+
+<script type="text/babel" data-presets="react">
+const{useState,useEffect,useMemo,useRef,useCallback}=React;
+
+const PORTFOLIOS_KEY="portfolio_list_v1";
+const getPortfolios=()=>{try{return JSON.parse(localStorage.getItem(PORTFOLIOS_KEY))||[{id:"default",name:"Основно"}]}catch(e){return[{id:"default",name:"Основно"}]}};
+const savePortfolios=list=>{try{localStorage.setItem(PORTFOLIOS_KEY,JSON.stringify(list))}catch(e){}};
+const storageKey=pid=>"portfolio_app_v2"+(pid==="default"?"":"_"+pid);
+const historyKey=pid=>"portfolio_history_v1"+(pid==="default"?"":"_"+pid);
+
+// ============ EMPTY & DEMO DATA ============
+const emptyData={
+  funds:[],metals:[],crypto:[],
+  loans:[],cash:0,
+  fundCategories:["Фондове"],
+  rates:{USD_EUR:0.92},
+};
+
+const demoData={
+  funds:[
+    {id:"d1",category:"Vanguard",name:"Vanguard FTSE All-World ETF",isin:"IE00B3RBWM25",units:12.5,avgPrice:95.20,invested:1190,currentNav:108.40,currentValue:1355,currency:"EUR"},
+    {id:"d2",category:"Vanguard",name:"Vanguard S&P 500 ETF",isin:"IE00B3XXRP09",units:8.3,avgPrice:82.50,invested:684.75,currentNav:91.30,currentValue:757.79,currency:"EUR"},
+    {id:"d3",category:"iShares",name:"iShares Core MSCI EM IMI ETF",isin:"IE00BKM4GZ66",units:25,avgPrice:28.90,invested:722.50,currentNav:31.20,currentValue:780,currency:"EUR"},
+    {id:"d4",category:"iShares",name:"iShares Euro Govt Bond 7-10yr",isin:"IE00B1FZS798",units:5,avgPrice:220.00,invested:1100,currentNav:215.50,currentValue:1077.50,currency:"EUR"},
+    {id:"d5",category:"Amundi",name:"Amundi MSCI World ESG Leaders",isin:"LU1437016972",units:15,avgPrice:42.30,invested:634.50,currentNav:47.80,currentValue:717,currency:"EUR"},
+    {id:"d6",category:"NN",name:"NN (L) Global Bond Opportunities",isin:"LU0546914242",units:3.2,avgPrice:185.00,invested:592,currentNav:178.50,currentValue:571.20,currency:"EUR"},
+  ],
+  metals:[
+    {id:"dm1",name:"Златно кюлче 10g, 999.9",weightGrams:10,pricePerGram:92,currency:"EUR",type:"gold",purchaseDate:"2024-03-15"},
+    {id:"dm2",name:"Сребърна монета 1 oz Maple Leaf",weightGrams:31.1035,pricePerGram:0.95,currency:"EUR",type:"silver",purchaseDate:"2025-01-10"},
+  ],
+  crypto:[
+    {id:"dc1",name:"BTC",balance:0.025,priceUsd:104500,currency:"USD"},
+    {id:"dc2",name:"ETH",balance:0.8,priceUsd:2520,currency:"USD"},
+  ],
+  loans:[
+    {id:"dl1",name:"Потребителски кредит",principal:8500,monthlyPayment:195,interestRate:5.2,nextPaymentDate:"2026-06-15",remainingPayments:48,originalPayments:60,currency:"EUR",payments:[]},
+  ],
+  cash:5200,
+  fundCategories:["Vanguard","iShares","Amundi","NN"],
+  rates:{USD_EUR:0.92},
+};
+
+// ============ HELPERS ============
+const toEUR=(a,c,r)=>{if(!a)return 0;if(c==="EUR")return a;if(c==="USD")return a*r.USD_EUR;return a};
+const fmt=(n,c="EUR")=>{if(n==null||isNaN(n))return"—";const s=c==="EUR"?"€":c==="USD"?"$":c;return s+" "+n.toLocaleString("bg-BG",{minimumFractionDigits:2,maximumFractionDigits:2})};
+const fmtPct=n=>{if(n==null||isNaN(n))return"—";return(n>=0?"+":"")+n.toFixed(2)+"%"};
+const uid=()=>Math.random().toString(36).slice(2,10);
+
+function buildAmortization(principal,monthlyPayment,annualRate,startDate,payments=[],remainingPayments=null){
+  const mr=annualRate/100/12;const schedule=[];let bal=principal;let d=new Date(startDate);if(isNaN(d.getTime()))d=new Date();let i=0;const max=remainingPayments||600;
+  while(bal>0.01&&i<max){const interest=bal*mr;let pp=monthlyPayment-interest;if(pp<=0){schedule.push({index:i+1,dateStr:d.toISOString().slice(0,10),payment:monthlyPayment,interest,principal:0,balance:bal,isPaid:false});break}
+  const isLast=remainingPayments&&(i===max-1);let pay;if(isLast||pp>bal){pp=bal;pay=pp+interest;bal=0}else{pay=monthlyPayment;bal-=pp}
+  const ds=new Date(d).toISOString().slice(0,10);schedule.push({index:i+1,dateStr:ds,payment:pay,interest,principal:pp,balance:Math.max(0,bal),isPaid:(payments||[]).includes(ds)});
+  d.setMonth(d.getMonth()+1);i++}return schedule}
+
+// ============ THEME ============
+const THEME={
+  funds:{grad:"from-violet-500 to-purple-600",bg:"bg-violet-50",text:"text-violet-700",hex:"#8b5cf6",icon:"📊"},
+  gold:{grad:"from-amber-400 to-yellow-500",bg:"bg-amber-50",text:"text-amber-700",hex:"#f59e0b",icon:"🥇"},
+  silver:{grad:"from-slate-400 to-slate-500",bg:"bg-slate-50",text:"text-slate-700 dark:text-slate-300",hex:"#64748b",icon:"🥈"},
+  crypto:{grad:"from-emerald-500 to-teal-600",bg:"bg-emerald-50",text:"text-emerald-700",hex:"#10b981",icon:"₿"},
+  cash:{grad:"from-sky-500 to-blue-600",bg:"bg-sky-50",text:"text-sky-700",hex:"#0ea5e9",icon:"💵"},
+  loans:{grad:"from-rose-500 to-red-600",bg:"bg-rose-50",text:"text-rose-700",hex:"#f43f5e",icon:"💳"},
+  net:{grad:"from-indigo-500 to-purple-600",bg:"bg-indigo-50",text:"text-indigo-700",hex:"#6366f1",icon:"◆"},
+};
+
+const Logo=({size=48})=><svg width={size} height={size*1.08} viewBox="0 0 100 108" fill="none"><path d="M50,0 L96,22 L96,62 Q96,84 50,104 Q4,84 4,62 L4,22 Z" fill="#6d28d9"/><circle cx="50" cy="48" r="30" fill="#8b5cf6"/><path d="M50,48 L50,18 A30,30 0 0,1 77,33 Z" fill="#a78bfa"/><path d="M50,48 L77,33 A30,30 0 0,1 80,48 Z" fill="#fbbf24"/><path d="M50,48 L80,48 A30,30 0 0,1 68,71 Z" fill="#34d399"/><path d="M50,48 L68,71 A30,30 0 0,1 50,78 Z" fill="#38bdf8"/><circle cx="50" cy="48" r="10" fill="#6d28d9"/><polygon points="50,41 56,48 50,55 44,48" fill="#c4b5fd"/></svg>;
+
+// ============ UI PRIMITIVES ============
+const Card=({children,className=""})=><div className={"bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 "+className}>{children}</div>;
+const GradientCard=({gradient,children,className=""})=><div className={`rounded-2xl shadow-lg bg-gradient-to-br ${gradient} text-white p-5 ${className}`}>{children}</div>;
+const Btn=({variant="default",size="md",children,className="",...p})=>{
+  const sz={sm:"px-3 py-1.5 text-xs",md:"px-4 py-2 text-sm",lg:"px-5 py-2.5 text-sm"};
+  const vr={default:"bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200",primary:"bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 shadow-sm",danger:"bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 border border-rose-200 dark:border-rose-800",ghost:"hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300",grad:"bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:opacity-90 shadow-sm"};
+  return<button className={`${sz[size]} ${vr[variant]} rounded-lg font-medium transition-all active:scale-95 ${className}`}{...p}>{children}</button>};
+const Input=({className="",...p})=><input className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800 focus:border-violet-400 transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 ${className}`}{...p}/>;
+const Select=({className="",children,...p})=><select className={`w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800 focus:border-violet-400 transition-all text-slate-800 dark:text-slate-200 ${className}`}{...p}>{children}</select>;
+const Label=({children})=><label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">{children}</label>;
+
+// ============ ONBOARDING ============
+function Onboarding({onStart}){
+  const fileRef=useRef(null);
+  const handleImport=(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{try{const parsed=JSON.parse(ev.target.result);
+      // Нов формат (archive)
+      if(parsed.version&&parsed.data){
+        const d=parsed.data;
+        if(!d.fundCategories){const cats=[...new Set((d.funds||[]).map(f=>f.category).filter(Boolean))];d.fundCategories=cats.length?cats:["Фондове"]}
+        if(d.cash===undefined)d.cash=0;
+        if(parsed.history&&parsed.history.length){
+          try{localStorage.setItem("portfolio_history_v1",JSON.stringify(parsed.history))}catch(e){}
+        }
+        onStart(d);
+      }
+      // Стар формат
+      else if(parsed.funds){
+        if(!parsed.fundCategories){const cats=[...new Set(parsed.funds.map(f=>f.category).filter(Boolean))];parsed.fundCategories=cats.length?cats:["Фондове"]}
+        if(parsed.cash===undefined)parsed.cash=0;
+        onStart(parsed);
+      }
+      else alert("Невалиден файл");
+    }catch(err){alert("Грешка: "+err.message)}};
+    reader.readAsText(file);e.target.value="";
+  };
+  return(
+    <div className="max-w-lg mx-auto px-4 py-16 slide-up">
+      <div className="text-center mb-10">
+        <div className="flex justify-center mb-4"><Logo size={64}/></div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">Моето портфолио</h1>
+        <p className="text-slate-500 text-sm">Цялостен преглед на активи, инвестиции и задължения. Данните се пазят само в твоя браузър.</p>
+      </div>
+      <div className="space-y-3">
+        <button onClick={()=>onStart({...emptyData})} className="w-full p-5 bg-white rounded-2xl border border-slate-200 hover:border-violet-300 hover:shadow-md transition-all text-left group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl shadow-sm">🆕</div>
+            <div>
+              <div className="font-semibold text-slate-800 group-hover:text-violet-700 transition-colors">Започни от нулата</div>
+              <div className="text-xs text-slate-500 mt-0.5">Празно портфолио — добавяш всичко ръчно</div>
+            </div>
+          </div>
+        </button>
+        <button onClick={()=>fileRef.current.click()} className="w-full p-5 bg-white rounded-2xl border border-slate-200 hover:border-violet-300 hover:shadow-md transition-all text-left group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white text-xl shadow-sm">📂</div>
+            <div>
+              <div className="font-semibold text-slate-800 group-hover:text-violet-700 transition-colors">Импортни JSON файл</div>
+              <div className="text-xs text-slate-500 mt-0.5">Ако вече имаш експортнат файл от преди</div>
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept=".json" onChange={handleImport} className="hidden"/>
+        </button>
+        <button onClick={()=>onStart({...JSON.parse(JSON.stringify(demoData))})} className="w-full p-5 bg-white rounded-2xl border border-slate-200 hover:border-violet-300 hover:shadow-md transition-all text-left group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xl shadow-sm">🎯</div>
+            <div>
+              <div className="font-semibold text-slate-800 group-hover:text-violet-700 transition-colors">Зареди демо данни</div>
+              <div className="text-xs text-slate-500 mt-0.5">Разгледай как работи с примерно портфолио (ETF-и, злато, крипто, кредит)</div>
+            </div>
+          </div>
+        </button>
+      </div>
+      <p className="text-center text-xs text-slate-400 mt-8">Всички данни остават локално в браузъра ти. Нищо не се изпраща никъде.</p>
+    </div>
+  );
+}
+
+// ============ APP ============
+function App(){
+  const[portfolios,setPortfolios]=useState(getPortfolios);
+  const[activeId,setActiveId]=useState(()=>{try{return localStorage.getItem("portfolio_active")||"default"}catch(e){return"default"}});
+  const STORAGE_KEY=storageKey(activeId);const HK=historyKey(activeId);
+
+  const[data,setData]=useState(()=>{try{const s=localStorage.getItem(STORAGE_KEY);if(s){const p=JSON.parse(s);if(p.cash===undefined)p.cash=0;if(!p.fundCategories){const c=[...new Set((p.funds||[]).map(f=>f.category).filter(Boolean))];p.fundCategories=c.length?c:["Фондове"]}return p}}catch(e){}return null});
+  const[tab,setTab]=useState("dashboard");
+  const[search,setSearch]=useState("");
+  const[dark,setDark]=useState(()=>{try{return localStorage.getItem("portfolio_dark")==="true"}catch(e){return false}});
+
+  useEffect(()=>{if(dark){document.documentElement.classList.add("dark")}else{document.documentElement.classList.remove("dark")}try{localStorage.setItem("portfolio_dark",dark)}catch(e){}},[dark]);
+
+  const switchPortfolio=id=>{setActiveId(id);try{localStorage.setItem("portfolio_active",id)}catch(e){}
+    const sk=storageKey(id);try{const s=localStorage.getItem(sk);if(s){const p=JSON.parse(s);if(p.cash===undefined)p.cash=0;if(!p.fundCategories){const c=[...new Set((p.funds||[]).map(f=>f.category).filter(Boolean))];p.fundCategories=c.length?c:["Фондове"]}setData(p)}else{setData(null)}}catch(e){setData(null)}setTab("dashboard");setSearch("")};
+  const addPortfolio=name=>{const id=uid();const np=[...portfolios,{id,name}];setPortfolios(np);savePortfolios(np);switchPortfolio(id)};
+  const removePortfolio=id=>{if(id==="default")return;if(!confirm("Изтрий това портфолио и всичките му данни?"))return;const np=portfolios.filter(p=>p.id!==id);setPortfolios(np);savePortfolios(np);try{localStorage.removeItem(storageKey(id));localStorage.removeItem(historyKey(id))}catch(e){}if(activeId===id)switchPortfolio("default")};
+  const renamePortfolio=(id,name)=>{const np=portfolios.map(p=>p.id===id?{...p,name}:p);setPortfolios(np);savePortfolios(np)};
+
+  useEffect(()=>{if(data)try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(e){}},[data,STORAGE_KEY]);
+
+  // Auto-snapshot: при всяка промяна записва снимка за днес
+  useEffect(()=>{
+    if(!data||(!data.funds.length&&!data.metals.length&&!data.crypto.length&&!data.cash&&!data.loans.length))return;
+    try{
+      const r=data.rates||{USD_EUR:0.92};
+      const ds=new Date().toISOString().slice(0,10);
+      const fv=(data.funds||[]).reduce((s,f)=>s+toEUR(f.currentValue,f.currency,r),0);
+      const fi=(data.funds||[]).reduce((s,f)=>s+toEUR(f.invested,f.currency,r),0);
+      const gv=(data.metals||[]).filter(m=>m.type==="gold").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,r),0);
+      const sv=(data.metals||[]).filter(m=>m.type==="silver").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,r),0);
+      const mv=gv+sv;const cv=(data.crypto||[]).reduce((s,c)=>s+toEUR(c.balance*c.priceUsd,"USD",r),0);
+      const cash=data.cash||0;const ta=fv+mv+cv+cash;const td=(data.loans||[]).reduce((s,l)=>s+toEUR(l.principal,l.currency,r),0);
+      const fd={};(data.funds||[]).forEach(f=>{fd[f.name]=toEUR(f.currentValue,f.currency,r)});
+      const snap={date:ds,ts:new Date(ds).getTime(),fundsValue:fv,fundsInvested:fi,fundsResult:fv-fi,goldValue:gv,silverValue:sv,metalsValue:mv,cryptoValue:cv,cashValue:cash,totalAssets:ta,totalDebt:td,netWorth:ta-td,fundDetails:fd};
+      const hist=JSON.parse(localStorage.getItem(HK)||"[]");
+      const idx=hist.findIndex(h=>h.date===ds);
+      if(idx>=0)hist[idx]=snap;else hist.push(snap);
+      hist.sort((a,b)=>a.ts-b.ts);
+      localStorage.setItem(HK,JSON.stringify(hist));
+    }catch(e){}
+  },[data,HK]);
+
+  const update=updater=>setData(prev=>({...prev,...updater(prev)}));
+
+  const handleStart=d=>{setData(d);setTab("dashboard")};
+
+  if(!data)return<Onboarding onStart={handleStart}/>;
+
+  const handleExport=()=>{
+    const history=JSON.parse(localStorage.getItem(HK)||"[]");
+    const archive={version:2,exportDate:new Date().toISOString(),data,history};
+    const b=new Blob([JSON.stringify(archive,null,2)],{type:"application/json"});
+    const u=URL.createObjectURL(b);const a=document.createElement("a");
+    a.href=u;a.download=`portfolio_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(u);
+  };
+  const handleImport=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const parsed=JSON.parse(ev.target.result);
+    // Нов формат (archive с version)
+    if(parsed.version&&parsed.data){
+      const p=parsed.data;
+      if(!p.fundCategories){const c=[...new Set((p.funds||[]).map(f=>f.category).filter(Boolean))];p.fundCategories=c.length?c:["Фондове"]}
+      if(p.cash===undefined)p.cash=0;
+      setData(p);
+      if(parsed.history&&parsed.history.length){
+        const existing=JSON.parse(localStorage.getItem(HK)||"[]");
+        const merged=[...existing];
+        parsed.history.forEach(h=>{const i=merged.findIndex(m=>m.date===h.date);if(i>=0)merged[i]=h;else merged.push(h)});
+        merged.sort((a,b)=>a.ts-b.ts);
+        localStorage.setItem(HK,JSON.stringify(merged));
+      }
+      alert("Данните и историята са възстановени успешно");
+    }
+    // Стар формат (само data)
+    else if(parsed.funds){
+      if(!parsed.fundCategories){const c=[...new Set(parsed.funds.map(f=>f.category).filter(Boolean))];parsed.fundCategories=c.length?c:["Фондове"]}
+      if(parsed.cash===undefined)parsed.cash=0;
+      setData(parsed);
+      alert("Данните са възстановени успешно (стар формат, без история)");
+    }
+    else alert("Невалиден файл");
+  }catch(err){alert("Грешка: "+err.message)}};r.readAsText(f);e.target.value=""};
+  const handleReset=()=>{const name=(portfolios.find(p=>p.id===activeId)||{}).name||"Основно";if(confirm(`Сигурен ли си? Ще изтриеш данните на "${name}" и ще видиш началния екран.`)){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(HK);setData(null)}};
+
+  const tabs=[
+    {id:"dashboard",label:"Табло",icon:"🏠"},{id:"history",label:"История",icon:"📈"},
+    {id:"funds",label:"Фондове",icon:"📊"},{id:"metals",label:"Метали",icon:"🥇"},
+    {id:"crypto",label:"Крипто",icon:"₿"},{id:"cash",label:"Кеш",icon:"💵"},
+    {id:"loans",label:"Кредити",icon:"💳"},{id:"settings",label:"Настройки",icon:"⚙️"},
+  ];
+
+  const activeName=(portfolios.find(p=>p.id===activeId)||{}).name||"Основно";
+
+  return(
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <Logo size={32}/>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Моето портфолио</h1>
+              {portfolios.length>1&&<select value={activeId} onChange={e=>switchPortfolio(e.target.value)} className="text-xs bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-700 rounded-lg px-2 py-1 font-medium">{portfolios.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Цялостен преглед на активи и задължения</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={()=>setDark(d=>!d)} className="w-9 h-9 rounded-lg flex items-center justify-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all text-sm" title={dark?"Светъл режим":"Тъмен режим"}>{dark?"☀️":"🌙"}</button>
+          <Btn size="sm" onClick={handleExport}>↓ Експорт</Btn>
+          <label className="cursor-pointer"><span className="inline-block px-3 py-1.5 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-all">↑ Импорт</span><input type="file" accept=".json" onChange={handleImport} className="hidden"/></label>
+        </div>
+      </div>
+      {!["dashboard","history","settings"].includes(tab)&&<div className="mb-4 relative"><Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Търси…" className="!bg-white/80 dark:!bg-slate-800/80 backdrop-blur"/>{search&&<button onClick={()=>setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-lg">×</button>}</div>}
+      <div className="flex gap-1 bg-white dark:bg-slate-800 p-1.5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 mb-6 overflow-x-auto scrollbar-thin">
+        {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} className={`flex-shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${tab===t.id?"bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md":"text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}><span className="mr-1.5">{t.icon}</span>{t.label}</button>)}
+      </div>
+      <div className="fade-in">
+        {tab==="dashboard"&&<Dashboard data={data}/>}
+        {tab==="history"&&<HistoryTab rates={data.rates} historyKey={HK}/>}
+        {tab==="funds"&&<FundsTab data={data} update={update} search={search}/>}
+        {tab==="metals"&&<MetalsTab data={data} update={update} search={search}/>}
+        {tab==="crypto"&&<CryptoTab data={data} update={update} search={search}/>}
+        {tab==="cash"&&<CashTab data={data} update={update}/>}
+        {tab==="loans"&&<LoansTab data={data} update={update} search={search}/>}
+        {tab==="settings"&&<SettingsTab data={data} update={update} onReset={handleReset} dark={dark} setDark={setDark} portfolios={portfolios} activeId={activeId} addPortfolio={addPortfolio} removePortfolio={removePortfolio} renamePortfolio={renamePortfolio}/>}
+      </div>
+    </div>
+  );
+}
+
+// ============ HISTORY TAB (unchanged logic) ============
+function HistoryTab({rates:currentRates,historyKey:HK}){
+  const[snapshots,setSnapshots]=useState([]);const[dragging,setDragging]=useState(false);const[chartMode,setChartMode]=useState("net");
+  const chartRef=useRef(null);const chartInstance=useRef(null);
+  useEffect(()=>{try{const s=localStorage.getItem(HK);if(s)setSnapshots(JSON.parse(s))}catch(e){}},[HK]);
+  useEffect(()=>{try{localStorage.setItem(HK,JSON.stringify(snapshots))}catch(e){}},[snapshots,HK]);
+
+  const processFile=file=>new Promise((resolve,reject)=>{
+    const m=file.name.match(/(\d{4}-\d{2}-\d{2})/);if(!m){reject("Не мога да извлека дата от: "+file.name);return}
+    const ds=m[1];const reader=new FileReader();
+    reader.onload=e=>{try{const data=JSON.parse(e.target.result);const r=data.rates||currentRates;
+      const fv=(data.funds||[]).reduce((s,f)=>s+toEUR(f.currentValue,f.currency,r),0);
+      const fi=(data.funds||[]).reduce((s,f)=>s+toEUR(f.invested,f.currency,r),0);
+      const gv=(data.metals||[]).filter(m=>m.type==="gold").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,r),0);
+      const sv=(data.metals||[]).filter(m=>m.type==="silver").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,r),0);
+      const mv=gv+sv;const cv=(data.crypto||[]).reduce((s,c)=>s+toEUR(c.balance*c.priceUsd,"USD",r),0);
+      const cash=data.cash||0;const ta=fv+mv+cv+cash;const td=(data.loans||[]).reduce((s,l)=>s+toEUR(l.principal,l.currency,r),0);
+      const fd={};(data.funds||[]).forEach(f=>{fd[f.name]=toEUR(f.currentValue,f.currency,r)});
+      resolve({date:ds,ts:new Date(ds).getTime(),fundsValue:fv,fundsInvested:fi,fundsResult:fv-fi,goldValue:gv,silverValue:sv,metalsValue:mv,cryptoValue:cv,cashValue:cash,totalAssets:ta,totalDebt:td,netWorth:ta-td,fundDetails:fd});
+    }catch(err){reject("Грешка: "+err.message)}};reader.onerror=()=>reject("Грешка при четене");reader.readAsText(file)});
+
+  const handleFiles=async files=>{const results=[];const errors=[];
+    for(const f of files){if(!f.name.endsWith('.json'))continue;try{results.push(await processFile(f))}catch(e){errors.push(e)}}
+    if(errors.length)alert("Грешки:\n"+errors.join("\n"));
+    if(results.length)setSnapshots(prev=>{const merged=[...prev];results.forEach(r=>{const i=merged.findIndex(m=>m.date===r.date);if(i>=0)merged[i]=r;else merged.push(r)});merged.sort((a,b)=>a.ts-b.ts);return merged})};
+
+  const handleDrop=e=>{e.preventDefault();setDragging(false);handleFiles(Array.from(e.dataTransfer.files))};
+  const handleFileInput=e=>{handleFiles(Array.from(e.target.files));e.target.value=""};
+  const clearHistory=()=>{if(confirm("Изтрий цялата история?")){setSnapshots([]);localStorage.removeItem(HK)}};
+
+  useEffect(()=>{
+    if(!chartRef.current||snapshots.length===0)return;if(chartInstance.current)chartInstance.current.destroy();
+    const labels=snapshots.map(s=>s.date);let datasets=[];
+    if(chartMode==="net")datasets=[{label:"Нетна стойност",data:snapshots.map(s=>s.netWorth),borderColor:"#6366f1",backgroundColor:"rgba(99,102,241,0.1)",fill:true},{label:"Активи",data:snapshots.map(s=>s.totalAssets),borderColor:"#10b981",backgroundColor:"transparent",borderDash:[5,3]},{label:"Задължения",data:snapshots.map(s=>s.totalDebt),borderColor:"#f43f5e",backgroundColor:"transparent",borderDash:[5,3]}];
+    else if(chartMode==="assets")datasets=[{label:"Фондове",data:snapshots.map(s=>s.fundsValue),borderColor:"#8b5cf6",backgroundColor:"rgba(139,92,246,0.1)",fill:true},{label:"Метали",data:snapshots.map(s=>s.metalsValue),borderColor:"#f59e0b",backgroundColor:"rgba(245,158,11,0.1)",fill:true},{label:"Крипто",data:snapshots.map(s=>s.cryptoValue),borderColor:"#10b981",backgroundColor:"rgba(16,185,129,0.1)",fill:true},{label:"Кеш",data:snapshots.map(s=>s.cashValue),borderColor:"#0ea5e9",backgroundColor:"rgba(14,165,233,0.1)",fill:true}];
+    else if(chartMode==="allocation")datasets=[{label:"Фондове %",data:snapshots.map(s=>s.totalAssets>0?s.fundsValue/s.totalAssets*100:0),borderColor:"#8b5cf6",backgroundColor:"transparent"},{label:"Метали %",data:snapshots.map(s=>s.totalAssets>0?s.metalsValue/s.totalAssets*100:0),borderColor:"#f59e0b",backgroundColor:"transparent"},{label:"Крипто %",data:snapshots.map(s=>s.totalAssets>0?s.cryptoValue/s.totalAssets*100:0),borderColor:"#10b981",backgroundColor:"transparent"},{label:"Кеш %",data:snapshots.map(s=>s.totalAssets>0?s.cashValue/s.totalAssets*100:0),borderColor:"#0ea5e9",backgroundColor:"transparent"},{label:"Дълг/Активи %",data:snapshots.map(s=>s.totalAssets>0?s.totalDebt/s.totalAssets*100:0),borderColor:"#f43f5e",backgroundColor:"transparent",borderDash:[5,3]}];
+    else if(chartMode==="funds"){const all=new Set();snapshots.forEach(s=>Object.keys(s.fundDetails||{}).forEach(n=>all.add(n)));const pal=["#8b5cf6","#a855f7","#7c3aed","#10b981","#14b8a6","#f97316","#ef4444","#3b82f6","#06b6d4","#84cc16","#22c55e","#ec4899","#d946ef"];let i=0;all.forEach(name=>{datasets.push({label:name.length>25?name.slice(0,23)+"…":name,data:snapshots.map(s=>(s.fundDetails||{})[name]||0),borderColor:pal[i%pal.length],backgroundColor:"transparent",borderWidth:2});i++})}
+    chartInstance.current=new Chart(chartRef.current,{type:"line",data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true,position:"bottom",labels:{boxWidth:12,padding:12,font:{size:11}}},tooltip:{backgroundColor:"rgba(15,23,42,0.95)",padding:12,cornerRadius:8,callbacks:{label:ctx=>{const suf=chartMode==="allocation"?"%":" €";return` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}${suf}`}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.04)"},ticks:{font:{size:11},callback:v=>chartMode==="allocation"?v.toFixed(0)+"%":"€"+v.toLocaleString("bg-BG")}}},elements:{point:{radius:4,hoverRadius:6},line:{tension:0.3,borderWidth:2.5}}}});
+    return()=>{if(chartInstance.current)chartInstance.current.destroy()};
+  },[snapshots,chartMode]);
+
+  const first=snapshots[0]||null;const last=snapshots[snapshots.length-1]||null;
+  const delta=(first&&last&&snapshots.length>=2)?{netWorth:last.netWorth-first.netWorth,assets:last.totalAssets-first.totalAssets,debt:last.totalDebt-first.totalDebt,days:Math.round((last.ts-first.ts)/86400000)}:null;
+
+  return(
+    <div className="space-y-5">
+      <GradientCard gradient="from-indigo-500 to-violet-600" className="relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+        <div className="relative"><div className="text-xs uppercase tracking-widest opacity-80 mb-1">Историческо проследяване</div><div className="text-2xl font-bold">{snapshots.length} снимки</div>
+        {delta&&<div className="flex gap-4 text-sm mt-2 flex-wrap"><span className="opacity-90">Период: <span className="font-semibold">{first.date} → {last.date} ({delta.days} дни)</span></span><span className={delta.netWorth>=0?"text-emerald-200":"text-rose-200"}>Нетна: <span className="font-semibold">{delta.netWorth>=0?"+":""}{delta.netWorth.toFixed(2)} €</span></span></div>}</div>
+      </GradientCard>
+      <div onDrop={handleDrop} onDragOver={e=>{e.preventDefault();setDragging(true)}} onDragLeave={()=>setDragging(false)}
+        className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${dragging?"border-violet-400 bg-violet-50 scale-[1.01]":"border-slate-200 bg-white hover:border-slate-300"}`}
+        onClick={()=>document.getElementById("histFileIn").click()}>
+        <div className="text-3xl mb-2">{dragging?"📂":"📁"}</div><div className="text-sm font-medium text-slate-700 dark:text-slate-300">{dragging?"Пусни файловете тук":"Пусни JSON файлове тук или кликни за избор"}</div>
+        <div className="text-xs text-slate-500 mt-1">Формат: portfolio_YYYY-MM-DD.json</div>
+        <input id="histFileIn" type="file" accept=".json" multiple onChange={handleFileInput} className="hidden"/>
+      </div>
+      {snapshots.length>0&&<>
+        <Card>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Графика</h2>
+            <div className="inline-flex bg-slate-100 rounded-lg p-1 flex-wrap">
+              {[{id:"net",label:"Нетна стойност"},{id:"assets",label:"Активи"},{id:"allocation",label:"Алокация %"},{id:"funds",label:"Фондове"}].map(m=><button key={m.id} onClick={()=>setChartMode(m.id)} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${chartMode===m.id?"bg-white text-slate-800 shadow-sm":"text-slate-500 dark:text-slate-400 dark:text-slate-500"}`}>{m.label}</button>)}
+            </div>
+          </div>
+          <div className="h-80"><canvas ref={chartRef}></canvas></div>
+        </Card>
+        {delta&&snapshots.length>=2&&<Card><h2 className="text-lg font-semibold text-slate-800 mb-3">Промени за периода</h2><div className="grid grid-cols-2 md:grid-cols-4 gap-3"><DeltaMetric label="Нетна стойност" from={first.netWorth} to={last.netWorth}/><DeltaMetric label="Активи" from={first.totalAssets} to={last.totalAssets}/><DeltaMetric label="Задължения" from={first.totalDebt} to={last.totalDebt} invert/><DeltaMetric label="Кеш" from={first.cashValue} to={last.cashValue}/></div></Card>}
+        <Card>
+          <div className="flex items-center justify-between mb-3"><h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Всички снимки ({snapshots.length})</h2><Btn size="sm" variant="danger" onClick={clearHistory}>Изчисти</Btn></div>
+          <div className="overflow-x-auto scrollbar-thin"><table className="w-full text-sm"><thead><tr className="text-xs text-slate-500 uppercase tracking-wide border-b border-slate-200 dark:border-slate-600"><th className="text-left py-2 px-2">Дата</th><th className="text-right py-2 px-2">Активи</th><th className="text-right py-2 px-2">Фондове</th><th className="text-right py-2 px-2">Метали</th><th className="text-right py-2 px-2">Крипто</th><th className="text-right py-2 px-2">Кеш</th><th className="text-right py-2 px-2">Дълг</th><th className="text-right py-2 px-2 font-semibold">Нетна</th></tr></thead>
+          <tbody>{snapshots.map((s,i)=>{const prev=i>0?snapshots[i-1]:null;const nd=prev?s.netWorth-prev.netWorth:null;return<tr key={s.date} className="border-b border-slate-100 hover:bg-slate-50"><td className="py-2 px-2 font-medium text-slate-700 dark:text-slate-300">{s.date}</td><td className="py-2 px-2 text-right tabular-nums">{fmt(s.totalAssets)}</td><td className="py-2 px-2 text-right tabular-nums">{fmt(s.fundsValue)}</td><td className="py-2 px-2 text-right tabular-nums">{fmt(s.metalsValue)}</td><td className="py-2 px-2 text-right tabular-nums">{fmt(s.cryptoValue)}</td><td className="py-2 px-2 text-right tabular-nums">{fmt(s.cashValue)}</td><td className="py-2 px-2 text-right tabular-nums text-rose-600">{fmt(s.totalDebt)}</td><td className="py-2 px-2 text-right tabular-nums font-semibold"><span className={s.netWorth>=0?"text-emerald-700":"text-rose-700"}>{fmt(s.netWorth)}</span>{nd!==null&&<span className={`ml-1 text-xs ${nd>=0?"text-emerald-500":"text-rose-500"}`}>{nd>=0?"↑":"↓"}{Math.abs(nd).toFixed(0)}</span>}</td></tr>})}</tbody></table></div>
+        </Card>
+      </>}
+      {snapshots.length===0&&<Card><div className="text-center py-8"><div className="text-4xl mb-3">📊</div><div className="text-sm font-medium text-slate-700 mb-1">Няма заредени данни</div><div className="text-xs text-slate-500 max-w-md mx-auto">Пускай JSON файлове от папка data/ горе. Формат: portfolio_YYYY-MM-DD.json</div></div></Card>}
+    </div>);
+}
+const DeltaMetric=({label,from,to,invert=false})=>{const d=to-from;const g=invert?d<=0:d>=0;return<div className={`${g?"bg-emerald-50":"bg-rose-50"} rounded-xl p-3`}><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{label}</div><div className="text-sm font-semibold text-slate-800 mt-0.5">{fmt(from)} → {fmt(to)}</div><div className={`text-xs font-medium mt-0.5 ${g?"text-emerald-600":"text-rose-600"}`}>{d>=0?"+":""}{d.toFixed(2)} €</div></div>};
+
+// ============ DASHBOARD ============
+function Dashboard({data}){
+  const[allocMode,setAllocMode]=useState("class");const chartRef=useRef(null);const chartInstance=useRef(null);
+
+  const calc=useMemo(()=>{
+    const fv=data.funds.reduce((s,f)=>s+toEUR(f.currentValue,f.currency,data.rates),0);
+    const gv=data.metals.filter(m=>m.type==="gold").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,data.rates),0);
+    const sv=data.metals.filter(m=>m.type==="silver").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,data.rates),0);
+    const mv=gv+sv;const cv=data.crypto.reduce((s,c)=>s+toEUR(c.balance*c.priceUsd,"USD",data.rates),0);const cash=data.cash||0;
+    const ta=fv+mv+cv+cash;const td=data.loans.reduce((s,l)=>s+toEUR(l.principal,l.currency,data.rates),0);
+    const fi=data.funds.reduce((s,f)=>s+toEUR(f.invested,f.currency,data.rates),0);const fr=fv-fi;
+    return{fundsValue:fv,goldValue:gv,silverValue:sv,metalsValue:mv,cryptoValue:cv,cashValue:cash,totalAssets:ta,totalDebt:td,netWorth:ta-td,totalInvested:fi,totalResult:fr,totalResultPct:fi>0?fr/fi*100:0}},[data]);
+
+  const chartData=useMemo(()=>{
+    if(allocMode==="class")return[{label:"Фондове",value:calc.fundsValue,color:THEME.funds.hex},{label:"Злато",value:calc.goldValue,color:THEME.gold.hex},{label:"Сребро",value:calc.silverValue,color:THEME.silver.hex},{label:"Крипто",value:calc.cryptoValue,color:THEME.crypto.hex},{label:"Кеш",value:calc.cashValue,color:THEME.cash.hex}].filter(d=>d.value>0);
+    const items=[];const pal=["#8b5cf6","#a855f7","#7c3aed","#10b981","#14b8a6","#f97316","#ef4444","#3b82f6","#06b6d4","#84cc16","#22c55e","#ec4899","#d946ef"];
+    data.funds.forEach((f,i)=>{const v=toEUR(f.currentValue,f.currency,data.rates);if(v>0)items.push({label:f.name.length>28?f.name.slice(0,26)+"…":f.name,value:v,color:pal[i%pal.length]})});
+    data.metals.forEach(m=>{const v=toEUR(m.weightGrams*m.pricePerGram,m.currency,data.rates);if(v>0)items.push({label:m.name,value:v,color:m.type==="gold"?THEME.gold.hex:THEME.silver.hex})});
+    data.crypto.forEach(c=>{const v=toEUR(c.balance*c.priceUsd,"USD",data.rates);if(v>0)items.push({label:c.name,value:v,color:THEME.crypto.hex})});
+    if(calc.cashValue>0)items.push({label:"Кеш",value:calc.cashValue,color:THEME.cash.hex});return items},[data,allocMode,calc]);
+
+  useEffect(()=>{
+    if(!chartRef.current)return;if(chartInstance.current)chartInstance.current.destroy();
+    if(chartData.length===0){chartInstance.current=null;return}
+    const total=chartData.reduce((s,d)=>s+d.value,0);
+    chartInstance.current=new Chart(chartRef.current,{type:"doughnut",data:{labels:chartData.map(d=>d.label),datasets:[{data:chartData.map(d=>d.value),backgroundColor:chartData.map(d=>d.color),borderWidth:3,borderColor:"#fff",hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"rgba(15,23,42,0.95)",padding:12,cornerRadius:8,callbacks:{label:ctx=>{const p=total>0?((ctx.parsed/total)*100).toFixed(1):0;return` ${ctx.label}: €${ctx.parsed.toFixed(2)} (${p}%)`}}}},cutout:"65%"}});
+    return()=>{if(chartInstance.current)chartInstance.current.destroy()}},[chartData]);
+
+  const total=chartData.reduce((s,d)=>s+d.value,0);
+
+  if(data.funds.length===0&&data.metals.length===0&&data.crypto.length===0&&!data.cash&&data.loans.length===0){
+    return<Card><div className="text-center py-12"><div className="text-5xl mb-4">🚀</div><div className="text-lg font-semibold text-slate-700 mb-2">Портфолиото ти е празно</div><div className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">Започни да добавяш активи от табовете: Фондове, Метали, Крипто, Кеш или Кредити.</div></div></Card>}
+
+  return(
+    <div className="space-y-5">
+      <GradientCard gradient={THEME.net.grad} className="overflow-hidden relative">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full"></div><div className="absolute bottom-0 right-12 -mb-12 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+        <div className="relative"><div className="text-xs uppercase tracking-widest opacity-80 mb-1">Нетна стойност</div><div className="text-4xl font-bold mb-3">{fmt(calc.netWorth)}</div><div className="flex gap-4 text-sm flex-wrap"><span className="opacity-90">Активи: <span className="font-semibold">{fmt(calc.totalAssets)}</span></span><span className="opacity-90">Задължения: <span className="font-semibold">{fmt(calc.totalDebt)}</span></span></div></div>
+      </GradientCard>
+
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+        <CatCard theme={THEME.funds} label="Фондове" value={calc.fundsValue} sub={`${data.funds.length} позиции`} pct={calc.totalAssets>0?calc.fundsValue/calc.totalAssets*100:0}/>
+        <CatCard theme={THEME.gold} label="Злато" value={calc.goldValue} pct={calc.totalAssets>0?calc.goldValue/calc.totalAssets*100:0}/>
+        <CatCard theme={THEME.silver} label="Сребро" value={calc.silverValue} pct={calc.totalAssets>0?calc.silverValue/calc.totalAssets*100:0}/>
+        <CatCard theme={THEME.crypto} label="Крипто" value={calc.cryptoValue} sub={`${data.crypto.length} позиции`} pct={calc.totalAssets>0?calc.cryptoValue/calc.totalAssets*100:0}/>
+        <CatCard theme={THEME.cash} label="Кеш" value={calc.cashValue} pct={calc.totalAssets>0?calc.cashValue/calc.totalAssets*100:0}/>
+        <CatCard theme={THEME.loans} label="Задължения" value={calc.totalDebt} sub={`${data.loans.length} кредита`} pct={calc.totalAssets>0?calc.totalDebt/calc.totalAssets*100:0} isDebt/>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2"><h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Алокация на портфолиото</h2>
+            <div className="inline-flex bg-slate-100 rounded-lg p-1"><button onClick={()=>setAllocMode("class")} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${allocMode==="class"?"bg-white text-slate-800 shadow-sm":"text-slate-500 dark:text-slate-400 dark:text-slate-500"}`}>По клас</button><button onClick={()=>setAllocMode("detailed")} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${allocMode==="detailed"?"bg-white text-slate-800 shadow-sm":"text-slate-500 dark:text-slate-400 dark:text-slate-500"}`}>Детайлно</button></div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4 items-center"><div className="relative h-64"><canvas ref={chartRef}></canvas><div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><div className="text-xs text-slate-500 uppercase tracking-wide">Общо</div><div className="text-xl font-bold text-slate-800 dark:text-slate-200">{fmt(calc.totalAssets)}</div></div></div>
+            <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">{chartData.map((d,i)=><div key={i} className="flex items-center gap-3 text-sm"><div className="w-3 h-3 rounded-sm flex-shrink-0" style={{background:d.color}}></div><div className="flex-1 truncate text-slate-700 dark:text-slate-300">{d.label}</div><div className="text-slate-500 text-xs">{total>0?((d.value/total)*100).toFixed(1):0}%</div><div className="font-medium text-slate-800 tabular-nums min-w-[80px] text-right">{fmt(d.value)}</div></div>)}</div></div>
+        </Card>
+        <Card>
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">Резултат фондове</h2>
+          <div className="space-y-3"><div><div className="text-xs text-slate-500 uppercase tracking-wide">Инвестирано</div><div className="text-xl font-semibold text-slate-800 dark:text-slate-200">{fmt(calc.totalInvested)}</div></div><div><div className="text-xs text-slate-500 uppercase tracking-wide">Текуща стойност</div><div className="text-xl font-semibold text-slate-800 dark:text-slate-200">{fmt(calc.fundsValue)}</div></div>
+            <div className={`p-3 rounded-xl ${calc.totalResult>=0?"bg-emerald-50":"bg-rose-50"}`}><div className={`text-xs uppercase tracking-wide ${calc.totalResult>=0?"text-emerald-600":"text-rose-600"}`}>Печалба / Загуба</div><div className={`text-2xl font-bold ${calc.totalResult>=0?"text-emerald-700":"text-rose-700"}`}>{fmt(calc.totalResult)}</div><div className={`text-sm font-medium ${calc.totalResult>=0?"text-emerald-600":"text-rose-600"}`}>{fmtPct(calc.totalResultPct)}</div></div></div>
+        </Card>
+      </div>
+
+      {calc.totalDebt>0&&<Card>
+        <div className="flex items-center justify-between mb-3"><h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Активи срещу задължения</h2><div className={`text-xs font-semibold px-2 py-1 rounded-md ${calc.netWorth>=0?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>Нетна: {fmt(calc.netWorth)}</div></div>
+        <p className="text-xs text-slate-500 mb-4">Задълженията са {calc.totalAssets>0?((calc.totalDebt/calc.totalAssets)*100).toFixed(1):0}% от активите.</p>
+        {(()=>{const mx=Math.max(calc.totalAssets,calc.totalDebt)||1;const ap=calc.totalAssets/mx*100;const dp=calc.totalDebt/mx*100;return<div className="space-y-3"><div><div className="flex justify-between text-xs mb-1.5"><span className="text-slate-600 dark:text-slate-300 font-medium">Активи</span><span className="text-emerald-700 font-semibold tabular-nums">{fmt(calc.totalAssets)}</span></div><div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all flex items-center justify-end pr-2" style={{width:`${ap}%`}}>{ap>30&&<span className="text-white text-xs font-medium">100%</span>}</div></div></div><div><div className="flex justify-between text-xs mb-1.5"><span className="text-slate-600 dark:text-slate-300 font-medium">Задължения</span><span className="text-rose-700 font-semibold tabular-nums">{fmt(calc.totalDebt)}</span></div><div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden"><div className="h-full bg-gradient-to-r from-rose-400 to-rose-500 transition-all flex items-center justify-end pr-2" style={{width:`${dp}%`}}>{dp>30&&<span className="text-white text-xs font-medium">{calc.totalAssets>0?((calc.totalDebt/calc.totalAssets)*100).toFixed(0):0}%</span>}</div></div></div></div>})()}
+      </Card>}
+    </div>);
+}
+
+const CatCard=({theme,label,value,sub,pct,isDebt})=>(<div className={`${theme.bg} rounded-2xl p-4 border border-white shadow-sm hover:shadow-md transition-shadow`}><div className="flex items-start justify-between mb-2"><div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${theme.grad} flex items-center justify-center text-white text-sm shadow-sm`}>{theme.icon}</div><div className={`text-xs font-semibold ${theme.text}`}>{isDebt?"−":""}{pct.toFixed(1)}%</div></div><div className={`text-xs ${theme.text} font-medium uppercase tracking-wide`}>{label}</div><div className="text-lg font-bold text-slate-800 mt-0.5">{fmt(value)}</div>{sub&&<div className="text-xs text-slate-500 mt-0.5">{sub}</div>}</div>);
+
+// ============ FUNDS (dynamic categories) ============
+function FundsTab({data,update,search=""}){
+  const[showForm,setShowForm]=useState(false);const[editing,setEditing]=useState(null);
+  const handleSave=fund=>{if(editing)update(d=>({funds:d.funds.map(f=>f.id===editing.id?{...fund,id:editing.id}:f)}));else update(d=>({funds:[...d.funds,{...fund,id:uid()}]}));setShowForm(false);setEditing(null)};
+  const handleDelete=id=>{if(confirm("Изтрий този фонд?"))update(d=>({funds:d.funds.filter(f=>f.id!==id)}))};
+  const moveFund=(id,dir)=>{update(d=>{const arr=[...d.funds];const i=arr.findIndex(f=>f.id===id);const ni=i+dir;if(ni<0||ni>=arr.length)return{};[arr[i],arr[ni]]=[arr[ni],arr[i]];return{funds:arr}})};
+
+  const categories=data.fundCategories||["Фондове"];
+  const sq=search.toLowerCase();
+  const filtered=sq?data.funds.filter(f=>f.name.toLowerCase().includes(sq)||f.category.toLowerCase().includes(sq)||(f.isin||"").toLowerCase().includes(sq)):data.funds;
+  const grouped=useMemo(()=>{const g={};categories.forEach(c=>g[c]=filtered.filter(f=>f.category===c));g["Други"]=filtered.filter(f=>!categories.includes(f.category));return g},[filtered,categories]);
+
+  const ti=data.funds.reduce((s,f)=>s+toEUR(f.invested,f.currency,data.rates),0);
+  const tv=data.funds.reduce((s,f)=>s+toEUR(f.currentValue,f.currency,data.rates),0);
+  const tr=tv-ti;const rp=ti>0?tr/ti*100:0;
+
+  return(
+    <div className="space-y-5">
+      <GradientCard gradient={THEME.funds.grad} className="relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div className="relative grid grid-cols-3 gap-4"><div><div className="text-xs uppercase tracking-widest opacity-80">Инвестирано</div><div className="text-xl md:text-2xl font-bold mt-1">{fmt(ti)}</div></div><div><div className="text-xs uppercase tracking-widest opacity-80">Стойност</div><div className="text-xl md:text-2xl font-bold mt-1">{fmt(tv)}</div></div><div><div className="text-xs uppercase tracking-widest opacity-80">Резултат</div><div className="text-xl md:text-2xl font-bold mt-1">{fmt(tr)}</div><div className="text-xs opacity-90">{fmtPct(rp)}</div></div></div>
+      </GradientCard>
+      <div className="flex justify-end"><Btn variant="grad" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Добави фонд</Btn></div>
+      {showForm&&<FundForm initial={editing} categories={categories} onSave={handleSave} onCancel={()=>{setShowForm(false);setEditing(null)}}/>}
+      {Object.entries(grouped).map(([cat,funds])=>funds.length>0&&<Card key={cat}><h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">{cat}</h3><div className="space-y-2">{funds.map(f=>{const r=f.currentValue-f.invested;const p=f.invested>0?r/f.invested*100:0;const pos=r>=0;return<div key={f.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"><div className={`w-1 h-12 rounded-full ${pos?"bg-emerald-400":"bg-rose-400"}`}></div><div className="flex-1 min-w-0"><div className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{f.name}</div><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{f.units} дяла • инв. {fmt(f.invested,f.currency)}</div></div><div className="text-right"><div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{fmt(f.currentValue,f.currency)}</div><div className={`text-xs font-medium ${pos?"text-emerald-600":"text-rose-600"}`}>{fmt(r,f.currency)} ({fmtPct(p)})</div></div><div className="flex gap-1"><Btn size="sm" variant="ghost" onClick={()=>moveFund(f.id,-1)} title="Нагоре">↑</Btn><Btn size="sm" variant="ghost" onClick={()=>moveFund(f.id,1)} title="Надолу">↓</Btn><Btn size="sm" variant="ghost" onClick={()=>{setEditing(f);setShowForm(true)}}>✎</Btn><Btn size="sm" variant="ghost" onClick={()=>handleDelete(f.id)} className="text-rose-500 hover:bg-rose-50">×</Btn></div></div>})}</div></Card>)}
+      {data.funds.length===0&&<Card><div className="text-center py-8 text-slate-400 dark:text-slate-500">Няма фондове. Добави един от бутона горе.</div></Card>}
+    </div>);
+}
+
+function FundForm({initial,categories,onSave,onCancel}){
+  const[form,setForm]=useState(initial||{category:categories[0]||"Фондове",name:"",isin:"",units:0,avgPrice:0,invested:0,currentNav:0,currentValue:0,currency:"EUR"});
+  const[newCat,setNewCat]=useState("");const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+  return(
+    <Card className="border-violet-200 ring-2 ring-violet-100">
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">{initial?"Редакция на фонд":"Нов фонд"}</h3>
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div><Label>Категория</Label>
+          <Select value={form.category} onChange={e=>{if(e.target.value==="__new__"){const n=prompt("Име на нова категория:");if(n&&n.trim()){set("category",n.trim())}}else set("category",e.target.value)}}>
+            {categories.map(c=><option key={c} value={c}>{c}</option>)}
+            <option value="__new__">+ Нова категория…</option>
+          </Select>
+        </div>
+        <div><Label>Валута</Label><Select value={form.currency} onChange={e=>set("currency",e.target.value)}><option value="EUR">EUR</option><option value="USD">USD</option></Select></div>
+      </div>
+      <div className="mb-3"><Label>Име на фонда</Label><Input value={form.name} onChange={e=>set("name",e.target.value)}/></div>
+      <div className="grid grid-cols-2 gap-3 mb-3"><div><Label>ISIN</Label><Input value={form.isin} onChange={e=>set("isin",e.target.value)}/></div><div><Label>Брой дялове</Label><Input type="number" step="0.0001" value={form.units} onChange={e=>set("units",parseFloat(e.target.value)||0)}/></div></div>
+      <div className="grid grid-cols-2 gap-3 mb-3"><div><Label>Средна цена</Label><Input type="number" step="0.01" value={form.avgPrice} onChange={e=>set("avgPrice",parseFloat(e.target.value)||0)}/></div><div><Label>Инвестирано</Label><Input type="number" step="0.01" value={form.invested} onChange={e=>set("invested",parseFloat(e.target.value)||0)}/></div></div>
+      <div className="grid grid-cols-2 gap-3 mb-4"><div><Label>Текуща цена (NAV)</Label><Input type="number" step="0.01" value={form.currentNav} onChange={e=>set("currentNav",parseFloat(e.target.value)||0)}/></div><div><Label>Настояща стойност</Label><Input type="number" step="0.01" value={form.currentValue} onChange={e=>set("currentValue",parseFloat(e.target.value)||0)}/></div></div>
+      <div className="flex gap-2"><Btn variant="grad" onClick={()=>onSave(form)}>Запази</Btn><Btn onClick={onCancel}>Отказ</Btn></div>
+    </Card>);
+}
+
+// ============ METALS ============
+function MetalsTab({data,update,search=""}){
+  const[showForm,setShowForm]=useState(false);const[editing,setEditing]=useState(null);
+  const handleSave=m=>{if(editing)update(d=>({metals:d.metals.map(x=>x.id===editing.id?{...m,id:editing.id}:x)}));else update(d=>({metals:[...d.metals,{...m,id:uid()}]}));setShowForm(false);setEditing(null)};
+  const handleDelete=id=>{if(confirm("Изтрий?"))update(d=>({metals:d.metals.filter(m=>m.id!==id)}))};
+  const sq=search.toLowerCase();
+  const filtered=sq?data.metals.filter(m=>m.name.toLowerCase().includes(sq)||(m.type||"").toLowerCase().includes(sq)):data.metals;
+  const gv=filtered.filter(m=>m.type==="gold").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,data.rates),0);
+  const sv=filtered.filter(m=>m.type==="silver").reduce((s,m)=>s+toEUR(m.weightGrams*m.pricePerGram,m.currency,data.rates),0);
+  const gg=filtered.filter(m=>m.type==="gold").reduce((s,m)=>s+m.weightGrams,0);
+  const sg=filtered.filter(m=>m.type==="silver").reduce((s,m)=>s+m.weightGrams,0);
+  return(
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3"><GradientCard gradient={THEME.gold.grad}><div className="text-xs uppercase tracking-widest opacity-80">Злато</div><div className="text-2xl font-bold mt-1">{fmt(gv)}</div><div className="text-xs opacity-90 mt-0.5">{gg.toFixed(2)} грама</div></GradientCard><GradientCard gradient={THEME.silver.grad}><div className="text-xs uppercase tracking-widest opacity-80">Сребро</div><div className="text-2xl font-bold mt-1">{fmt(sv)}</div><div className="text-xs opacity-90 mt-0.5">{sg.toFixed(2)} грама</div></GradientCard></div>
+      <div className="flex justify-end"><Btn variant="grad" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Добави метал</Btn></div>
+      {showForm&&<MetalForm initial={editing} onSave={handleSave} onCancel={()=>{setShowForm(false);setEditing(null)}}/>}
+      <Card>{filtered.length===0?<div className="text-center py-10 text-slate-400 dark:text-slate-500 dark:text-slate-400 dark:text-slate-500">{sq?"Няма резултати.":"Няма метали."}</div>:<div className="space-y-2">{filtered.map(m=>{const th=m.type==="gold"?THEME.gold:THEME.silver;return<div key={m.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"><div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${th.grad} flex items-center justify-center text-white shadow-sm`}>{th.icon}</div><div className="flex-1 min-w-0"><div className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{m.name}</div><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{m.weightGrams} г @ {fmt(m.pricePerGram,m.currency)}/г {m.purchaseDate&&`• ${m.purchaseDate}`}</div></div><div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{fmt(m.weightGrams*m.pricePerGram,m.currency)}</div><div className="flex gap-1"><Btn size="sm" variant="ghost" onClick={()=>{setEditing(m);setShowForm(true)}}>✎</Btn><Btn size="sm" variant="ghost" onClick={()=>handleDelete(m.id)} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30">×</Btn></div></div>})}</div>}</Card>
+    </div>);
+}
+function MetalForm({initial,onSave,onCancel}){
+  const[form,setForm]=useState(initial||{name:"",type:"gold",weightGrams:0,pricePerGram:0,currency:"EUR",purchaseDate:""});const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+  return<Card className="border-amber-200 ring-2 ring-amber-100"><h3 className="text-lg font-semibold text-slate-800 mb-4">{initial?"Редакция":"Нов метал"}</h3><div className="grid grid-cols-2 gap-3 mb-3"><div><Label>Тип</Label><Select value={form.type} onChange={e=>set("type",e.target.value)}><option value="gold">Злато</option><option value="silver">Сребро</option><option value="platinum">Платина</option><option value="other">Друг</option></Select></div><div><Label>Валута</Label><Select value={form.currency} onChange={e=>set("currency",e.target.value)}><option value="EUR">EUR</option><option value="USD">USD</option></Select></div></div><div className="mb-3"><Label>Описание</Label><Input value={form.name} onChange={e=>set("name",e.target.value)} placeholder="напр. Злато 999.9, кюлче 5g"/></div><div className="grid grid-cols-2 gap-3 mb-3"><div><Label>Тегло (грамове)</Label><Input type="number" step="0.0001" value={form.weightGrams} onChange={e=>set("weightGrams",parseFloat(e.target.value)||0)}/></div><div><Label>Цена за грам</Label><Input type="number" step="0.01" value={form.pricePerGram} onChange={e=>set("pricePerGram",parseFloat(e.target.value)||0)}/></div></div><div className="mb-4"><Label>Дата на покупка</Label><Input type="date" value={form.purchaseDate} onChange={e=>set("purchaseDate",e.target.value)}/></div><div className="flex gap-2"><Btn variant="grad" onClick={()=>onSave(form)}>Запази</Btn><Btn onClick={onCancel}>Отказ</Btn></div></Card>;
+}
+
+// ============ CRYPTO ============
+function CryptoTab({data,update,search=""}){
+  const[showForm,setShowForm]=useState(false);const[editing,setEditing]=useState(null);
+  const handleSave=c=>{if(editing)update(d=>({crypto:d.crypto.map(x=>x.id===editing.id?{...c,id:editing.id}:x)}));else update(d=>({crypto:[...d.crypto,{...c,id:uid()}]}));setShowForm(false);setEditing(null)};
+  const handleDelete=id=>{if(confirm("Изтрий?"))update(d=>({crypto:d.crypto.filter(c=>c.id!==id)}))};
+  const sq=search.toLowerCase();
+  const filtered=sq?data.crypto.filter(c=>c.name.toLowerCase().includes(sq)):data.crypto;
+  const tv=filtered.reduce((s,c)=>s+toEUR(c.balance*c.priceUsd,"USD",data.rates),0);
+  return(
+    <div className="space-y-5">
+      <GradientCard gradient={THEME.crypto.grad} className="relative overflow-hidden"><div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full"></div><div className="relative grid grid-cols-2 gap-4"><div><div className="text-xs uppercase tracking-widest opacity-80">Общо крипто</div><div className="text-2xl font-bold mt-1">{fmt(tv)}</div></div><div><div className="text-xs uppercase tracking-widest opacity-80">Позиции</div><div className="text-2xl font-bold mt-1">{data.crypto.length}</div></div></div></GradientCard>
+      <div className="flex justify-end"><Btn variant="grad" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Добави</Btn></div>
+      {showForm&&<CryptoForm initial={editing} onSave={handleSave} onCancel={()=>{setShowForm(false);setEditing(null)}}/>}
+      <Card>{filtered.length===0?<div className="text-center py-10 text-slate-400 dark:text-slate-500 dark:text-slate-400 dark:text-slate-500">{sq?"Няма резултати.":"Няма позиции."}</div>:<div className="space-y-2">{filtered.map(c=><div key={c.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"><div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${THEME.crypto.grad} flex items-center justify-center text-white shadow-sm font-bold`}>{c.name.slice(0,1).toUpperCase()}</div><div className="flex-1 min-w-0"><div className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{c.name}</div><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{c.balance.toLocaleString("bg-BG")} @ ${c.priceUsd}</div></div><div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{fmt(c.balance*c.priceUsd,"USD")}</div><div className="flex gap-1"><Btn size="sm" variant="ghost" onClick={()=>{setEditing(c);setShowForm(true)}}>✎</Btn><Btn size="sm" variant="ghost" onClick={()=>handleDelete(c.id)} className="text-rose-500 hover:bg-rose-50">×</Btn></div></div>)}</div>}</Card>
+    </div>);
+}
+function CryptoForm({initial,onSave,onCancel}){
+  const[form,setForm]=useState(initial||{name:"",balance:0,priceUsd:0,currency:"USD"});const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+  return<Card className="border-emerald-200 ring-2 ring-emerald-100"><h3 className="text-lg font-semibold text-slate-800 mb-4">{initial?"Редакция":"Ново крипто"}</h3><div className="mb-3"><Label>Име / Тикер</Label><Input value={form.name} onChange={e=>set("name",e.target.value)} placeholder="напр. BTC, ETH"/></div><div className="grid grid-cols-2 gap-3 mb-4"><div><Label>Баланс</Label><Input type="number" step="0.00000001" value={form.balance} onChange={e=>set("balance",parseFloat(e.target.value)||0)}/></div><div><Label>Цена в USD</Label><Input type="number" step="0.00000001" value={form.priceUsd} onChange={e=>set("priceUsd",parseFloat(e.target.value)||0)}/></div></div><div className="flex gap-2"><Btn variant="grad" onClick={()=>onSave(form)}>Запази</Btn><Btn onClick={onCancel}>Отказ</Btn></div></Card>;
+}
+
+// ============ CASH ============
+function CashTab({data,update}){
+  const[value,setValue]=useState(data.cash||0);
+  useEffect(()=>{setValue(data.cash||0)},[data.cash]);
+  const handleSave=()=>update(d=>({cash:parseFloat(value)||0}));
+  const adj=delta=>{const nv=(parseFloat(value)||0)+delta;setValue(nv);update(d=>({cash:nv}))};
+  return(
+    <div className="space-y-5">
+      <GradientCard gradient={THEME.cash.grad} className="relative overflow-hidden"><div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full"></div><div className="relative"><div className="text-xs uppercase tracking-widest opacity-80">Наличен кеш</div><div className="text-4xl font-bold mt-1">{fmt(data.cash||0)}</div><div className="text-xs opacity-90 mt-1">по сметки и в брой</div></div></GradientCard>
+      <Card><h2 className="text-lg font-semibold text-slate-800 mb-1">Обнови сумата</h2><p className="text-xs text-slate-500 mb-4">Общ наличен кеш в EUR. Влиза в активите на таблото.</p><Label>Сума (EUR)</Label><Input type="number" step="0.01" value={value} onChange={e=>setValue(e.target.value)} onBlur={handleSave} className="text-lg font-medium"/><div className="mt-4"><Btn variant="grad" onClick={handleSave}>Запази</Btn></div></Card>
+      <Card><h2 className="text-lg font-semibold text-slate-800 mb-1">Бързи корекции</h2><p className="text-xs text-slate-500 mb-4">Заплата, сметка, теглене.</p><div className="grid grid-cols-3 gap-2 mb-3">{[100,500,1000].map(v=><button key={v} onClick={()=>adj(v)} className="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium transition-colors active:scale-95">+ {v} €</button>)}</div><div className="grid grid-cols-3 gap-2">{[100,500,1000].map(v=><button key={v} onClick={()=>adj(-v)} className="px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-sm font-medium transition-colors active:scale-95">− {v} €</button>)}</div></Card>
+    </div>);
+}
+
+// ============ LOANS ============
+function LoansTab({data,update,search=""}){
+  const[showForm,setShowForm]=useState(false);const[editing,setEditing]=useState(null);const[openLoan,setOpenLoan]=useState(null);
+  const handleSave=loan=>{if(editing)update(d=>({loans:d.loans.map(l=>l.id===editing.id?{...loan,id:editing.id,payments:editing.payments||[]}:l)}));else update(d=>({loans:[...d.loans,{...loan,id:uid(),payments:[]}]}));setShowForm(false);setEditing(null)};
+  const handleDelete=id=>{if(confirm("Изтрий?"))update(d=>({loans:d.loans.filter(l=>l.id!==id)}))};
+  const togglePay=(lid,ds)=>{update(d=>({loans:d.loans.map(l=>{if(l.id!==lid)return l;const p=l.payments||[];return{...l,payments:p.includes(ds)?p.filter(x=>x!==ds):[...p,ds]}})}))};
+  const sq=search.toLowerCase();
+  const filtered=sq?data.loans.filter(l=>l.name.toLowerCase().includes(sq)):data.loans;
+  const td=filtered.reduce((s,l)=>s+toEUR(l.principal,l.currency,data.rates),0);const tm=filtered.reduce((s,l)=>s+toEUR(l.monthlyPayment,l.currency,data.rates),0);
+
+  return(
+    <div className="space-y-5">
+      <GradientCard gradient={THEME.loans.grad} className="relative overflow-hidden"><div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-white opacity-10 rounded-full"></div><div className="relative grid grid-cols-3 gap-4"><div><div className="text-xs uppercase tracking-widest opacity-80">Общо</div><div className="text-xl md:text-2xl font-bold mt-1">{fmt(td)}</div></div><div><div className="text-xs uppercase tracking-widest opacity-80">Месечно</div><div className="text-xl md:text-2xl font-bold mt-1">{fmt(tm)}</div></div><div><div className="text-xs uppercase tracking-widest opacity-80">Брой</div><div className="text-xl md:text-2xl font-bold mt-1">{data.loans.length}</div></div></div></GradientCard>
+      <div className="flex justify-end"><Btn variant="grad" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Добави кредит</Btn></div>
+      {showForm&&<LoanForm initial={editing} onSave={handleSave} onCancel={()=>{setShowForm(false);setEditing(null)}}/>}
+      {filtered.map(loan=>{
+        const sch=buildAmortization(loan.principal,loan.monthlyPayment,loan.interestRate,loan.nextPaymentDate,loan.payments||[],loan.remainingPayments);
+        const mpc=sch.filter(s=>s.isPaid).length;const tint=sch.reduce((s,p)=>s+p.interest,0);const isO=openLoan===loan.id;
+        const orig=loan.originalPayments||sch.length;const hist=orig-sch.length;const pc=hist+mpc;const prog=orig>0?pc/orig*100:0;
+        return<Card key={loan.id}>
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-2"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${THEME.loans.grad} flex items-center justify-center text-white shadow-sm`}>💳</div><div><h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">{loan.name}</h2><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{fmt(loan.principal,loan.currency)} • {loan.interestRate}% годишно</div></div></div><div className="flex gap-1"><Btn size="sm" variant="ghost" onClick={()=>{setEditing(loan);setShowForm(true)}}>✎</Btn><Btn size="sm" variant="ghost" onClick={()=>handleDelete(loan.id)} className="text-rose-500 hover:bg-rose-50">×</Btn></div></div>
+          <div className="mb-4"><div className="flex justify-between text-xs text-slate-500 mb-1.5"><span>Прогрес</span><span>{pc}/{orig} вноски ({prog.toFixed(0)}%)</span></div><div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div className={`h-full bg-gradient-to-r ${THEME.loans.grad} transition-all`} style={{width:`${prog}%`}}></div></div></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4"><div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3"><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">Вноска</div><div className="text-sm font-semibold text-slate-800 mt-0.5">{fmt(loan.monthlyPayment,loan.currency)}</div></div><div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3"><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">Следваща</div><div className="text-sm font-semibold text-slate-800 mt-0.5">{loan.nextPaymentDate}</div></div><div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3"><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">Обща лихва</div><div className="text-sm font-semibold text-rose-600 mt-0.5">{fmt(tint,loan.currency)}</div></div><div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3"><div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">Край</div><div className="text-sm font-semibold text-slate-800 mt-0.5">{sch.length>0?sch[sch.length-1].dateStr:"—"}</div></div></div>
+          <Btn size="sm" onClick={()=>setOpenLoan(isO?null:loan.id)}>{isO?"▲ Скрий":"▼ Покажи"} амортизационен план</Btn>
+          {isO&&<div className="mt-4 overflow-x-auto scrollbar-thin"><table className="w-full text-sm"><thead><tr className="text-xs text-slate-500 uppercase tracking-wide border-b border-slate-200 dark:border-slate-600"><th className="text-left py-2 px-2">#</th><th className="text-left py-2 px-2">Дата</th><th className="text-right py-2 px-2">Вноска</th><th className="text-right py-2 px-2">Главница</th><th className="text-right py-2 px-2">Лихва</th><th className="text-right py-2 px-2">Остатък</th><th className="text-center py-2 px-2">Статус</th></tr></thead><tbody>{sch.map(p=><tr key={p.index} className={`border-b border-slate-100 ${p.isPaid?"opacity-50":""}`}><td className="py-2 px-2 text-slate-500 dark:text-slate-400 dark:text-slate-500">{p.index}</td><td className="py-2 px-2 text-slate-700 dark:text-slate-300">{p.dateStr}</td><td className="py-2 px-2 text-right tabular-nums">{p.payment.toFixed(2)}</td><td className="py-2 px-2 text-right tabular-nums">{p.principal.toFixed(2)}</td><td className="py-2 px-2 text-right tabular-nums text-rose-600">{p.interest.toFixed(2)}</td><td className="py-2 px-2 text-right tabular-nums font-medium text-slate-800 dark:text-slate-200">{p.balance.toFixed(2)}</td><td className="py-2 px-2 text-center">{p.isPaid?<button onClick={()=>togglePay(loan.id,p.dateStr)} className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium hover:bg-emerald-200">✓ Платено</button>:<button onClick={()=>togglePay(loan.id,p.dateStr)} className="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-medium hover:bg-slate-200">Отбележи</button>}</td></tr>)}</tbody></table></div>}
+        </Card>})}
+      {filtered.length===0&&<Card><div className="text-center py-8 text-slate-400 dark:text-slate-500 dark:text-slate-400 dark:text-slate-500">{sq?"Няма резултати.":"Няма кредити."}</div></Card>}
+    </div>);
+}
+function LoanForm({initial,onSave,onCancel}){
+  const[form,setForm]=useState(initial||{name:"",principal:0,monthlyPayment:0,interestRate:5,nextPaymentDate:new Date().toISOString().slice(0,10),remainingPayments:0,originalPayments:0,currency:"EUR"});const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+  return<Card className="border-rose-200 ring-2 ring-rose-100"><h3 className="text-lg font-semibold text-slate-800 mb-4">{initial?"Редакция":"Нов кредит"}</h3><div className="mb-3"><Label>Име</Label><Input value={form.name} onChange={e=>set("name",e.target.value)}/></div><div className="grid grid-cols-2 gap-3 mb-3"><div><Label>Остатъчна главница</Label><Input type="number" step="0.01" value={form.principal} onChange={e=>set("principal",parseFloat(e.target.value)||0)}/></div><div><Label>Валута</Label><Select value={form.currency} onChange={e=>set("currency",e.target.value)}><option value="EUR">EUR</option><option value="USD">USD</option></Select></div></div><div className="grid grid-cols-2 gap-3 mb-3"><div><Label>Месечна вноска</Label><Input type="number" step="0.01" value={form.monthlyPayment} onChange={e=>set("monthlyPayment",parseFloat(e.target.value)||0)}/></div><div><Label>Годишна лихва (%)</Label><Input type="number" step="0.01" value={form.interestRate} onChange={e=>set("interestRate",parseFloat(e.target.value)||0)}/></div></div><div className="grid grid-cols-2 gap-3 mb-3"><div><Label>Следваща вноска</Label><Input type="date" value={form.nextPaymentDate} onChange={e=>set("nextPaymentDate",e.target.value)}/></div><div><Label>Оставащи вноски</Label><Input type="number" step="1" value={form.remainingPayments} onChange={e=>set("remainingPayments",parseInt(e.target.value)||0)}/></div></div><div className="mb-4"><Label>Общ брой вноски при отпускане</Label><Input type="number" step="1" value={form.originalPayments} onChange={e=>set("originalPayments",parseInt(e.target.value)||0)}/><p className="text-xs text-slate-400 mt-1">За прогреса: платени = този брой − оставащи.</p></div><div className="flex gap-2"><Btn variant="grad" onClick={()=>onSave(form)}>Запази</Btn><Btn onClick={onCancel}>Отказ</Btn></div></Card>;
+}
+
+// ============ SETTINGS (with category management) ============
+function SettingsTab({data,update,onReset,dark,setDark,portfolios,activeId,addPortfolio,removePortfolio,renamePortfolio}){
+  const updateRate=(k,v)=>update(d=>({rates:{...d.rates,[k]:parseFloat(v)||0}}));
+  const[newCat,setNewCat]=useState("");
+  const[newPName,setNewPName]=useState("");
+  const categories=data.fundCategories||["Фондове"];
+
+  // What-if simulator state
+  const[simLoan,setSimLoan]=useState(null);const[simAmount,setSimAmount]=useState(0);
+  const simResult=useMemo(()=>{
+    if(!simLoan||!simAmount)return null;
+    const loan=data.loans.find(l=>l.id===simLoan);if(!loan)return null;
+    const origSch=buildAmortization(loan.principal,loan.monthlyPayment,loan.interestRate,loan.nextPaymentDate,loan.payments||[],loan.remainingPayments);
+    const newPrincipal=Math.max(0,loan.principal-simAmount);
+    const newRemaining=newPrincipal<=0?0:null;
+    const newSch=newPrincipal>0?buildAmortization(newPrincipal,loan.monthlyPayment,loan.interestRate,loan.nextPaymentDate,[],newRemaining):[];
+    const origInt=origSch.reduce((s,p)=>s+p.interest,0);
+    const newInt=newSch.reduce((s,p)=>s+p.interest,0);
+    return{origMonths:origSch.length,newMonths:newSch.length,origInterest:origInt,newInterest:newInt,savedInterest:origInt-newInt,savedMonths:origSch.length-newSch.length};
+  },[simLoan,simAmount,data.loans]);
+
+  const addCategory=()=>{const name=newCat.trim();if(!name)return;if(categories.includes(name)){alert("Тази категория вече съществува.");return}update(d=>({fundCategories:[...(d.fundCategories||[]),name]}));setNewCat("")};
+  const removeCategory=cat=>{const fundsInCat=data.funds.filter(f=>f.category===cat);if(fundsInCat.length>0){alert(`Не може да изтриеш "${cat}" — има ${fundsInCat.length} фонда в нея. Премести ги първо.`);return}if(confirm(`Изтрий категория "${cat}"?`))update(d=>({fundCategories:(d.fundCategories||[]).filter(c=>c!==cat)}))};
+
+  return(
+    <div className="space-y-5">
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-1">Изглед</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Превключи между светъл и тъмен режим.</p>
+        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+          <div className="flex items-center gap-3"><span className="text-xl">{dark?"🌙":"☀️"}</span><span className="text-sm font-medium text-slate-800 dark:text-slate-200">{dark?"Тъмен режим":"Светъл режим"}</span></div>
+          <button onClick={()=>setDark(d=>!d)} className={`w-12 h-7 rounded-full transition-all relative ${dark?"bg-violet-600":"bg-slate-300"}`}><div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all shadow-sm ${dark?"left-6":"left-1"}`}/></button>
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-1">Портфолиа</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Управлявай отделни портфолиа (лично, семейно, инвестиционно…).</p>
+        <div className="space-y-2 mb-4">
+          {portfolios.map(p=><div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+            <div className="flex items-center gap-2">
+              {p.id===activeId&&<span className="w-2 h-2 bg-violet-500 rounded-full"></span>}
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{p.name}</span>
+              {p.id===activeId&&<span className="text-xs text-violet-600 dark:text-violet-400">(активно)</span>}
+            </div>
+            <div className="flex gap-1">
+              <Btn size="sm" variant="ghost" onClick={()=>{const n=prompt("Ново име:",p.name);if(n&&n.trim())renamePortfolio(p.id,n.trim())}}>✎</Btn>
+              {p.id!=="default"&&<Btn size="sm" variant="ghost" onClick={()=>removePortfolio(p.id)} className="text-rose-500">×</Btn>}
+            </div>
+          </div>)}
+        </div>
+        <div className="flex gap-2"><Input value={newPName} onChange={e=>setNewPName(e.target.value)} placeholder="Ново портфолио…" onKeyDown={e=>{if(e.key==="Enter"&&newPName.trim()){addPortfolio(newPName.trim());setNewPName("")}}}/><Btn variant="grad" onClick={()=>{if(newPName.trim()){addPortfolio(newPName.trim());setNewPName("")}}}>Добави</Btn></div>
+      </Card>
+
+      {data.loans.length>0&&<Card>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-1">🧮 Какво ако… погася по-рано?</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Симулирай еднократно погасяване и виж колко лихва спестяваш.</p>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div><Label>Кредит</Label><Select value={simLoan||""} onChange={e=>setSimLoan(e.target.value||null)}><option value="">Избери кредит…</option>{data.loans.map(l=><option key={l.id} value={l.id}>{l.name} ({fmt(l.principal,l.currency)})</option>)}</Select></div>
+          <div><Label>Сума за погасяване (EUR)</Label><Input type="number" step="100" value={simAmount} onChange={e=>setSimAmount(parseFloat(e.target.value)||0)}/></div>
+        </div>
+        {simResult&&<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3"><div className="text-xs text-emerald-600 dark:text-emerald-400">Спестена лихва</div><div className="text-lg font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">{fmt(simResult.savedInterest)}</div></div>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3"><div className="text-xs text-emerald-600 dark:text-emerald-400">По-малко месеци</div><div className="text-lg font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">{simResult.savedMonths}</div></div>
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3"><div className="text-xs text-slate-500 dark:text-slate-400">Лихва без погасяване</div><div className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-0.5">{fmt(simResult.origInterest)}</div></div>
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3"><div className="text-xs text-slate-500 dark:text-slate-400">Лихва с погасяване</div><div className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-0.5">{fmt(simResult.newInterest)}</div></div>
+        </div>}
+      </Card>}
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-1">Категории фондове</h2>
+        <p className="text-xs text-slate-500 mb-4">Управлявай групите, в които се разделят фондовете ти.</p>
+        <div className="space-y-2 mb-4">
+          {categories.map(cat=>{const count=data.funds.filter(f=>f.category===cat).length;return<div key={cat} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl"><div><span className="text-sm font-medium text-slate-800 dark:text-slate-200">{cat}</span><span className="ml-2 text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">({count} фонда)</span></div><Btn size="sm" variant="ghost" onClick={()=>removeCategory(cat)} className="text-rose-500 hover:bg-rose-50">×</Btn></div>})}
+        </div>
+        <div className="flex gap-2"><Input value={newCat} onChange={e=>setNewCat(e.target.value)} placeholder="Нова категория…" onKeyDown={e=>e.key==="Enter"&&addCategory()}/><Btn variant="grad" onClick={addCategory}>Добави</Btn></div>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 mb-1">Валутни курсове</h2>
+        <p className="text-xs text-slate-500 mb-4">Към EUR. Използват се за конвертиране в таблото.</p>
+        <div className="grid grid-cols-1 gap-3"><div><Label>1 USD = … EUR</Label><Input type="number" step="0.0001" value={data.rates.USD_EUR} onChange={e=>updateRate("USD_EUR",e.target.value)}/></div></div>
+      </Card>
+
+      <Card className="border-rose-200">
+        <h2 className="text-lg font-semibold text-rose-700 mb-1">⚠️ Нулиране на текущото портфолио</h2>
+        <p className="text-xs text-slate-500 mb-4">Изтрива данните и историята само на активното портфолио. Останалите не се засягат. Направи експорт преди това.</p>
+        <Btn variant="danger" onClick={onReset}>Изтрий всичко и започни отначало</Btn>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 mb-1">За приложението</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">Данните се пазят локално в браузъра (localStorage). Прави експорт периодично.</p>
+        <div className="mt-4 p-4 bg-violet-50 rounded-xl border border-violet-100">
+          <p className="text-sm text-slate-700 dark:text-slate-300">☕ Харесва ти? Проектът е безплатен и без реклами.</p>
+          <a href="https://paypal.me/sdevelopers" target="_blank" rel="noopener" className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors">Подкрепи с PayPal</a>
+        </div>
+      </Card>
+    </div>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+// PWA Service Worker registration
+if('serviceWorker' in navigator){
+  const SW_CODE=`
+    const CACHE='portfolio-v2';
+    const URLS=[self.location.href];
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS)).then(()=>self.skipWaiting())));
+    self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+    self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.ok){const cl=res.clone();caches.open(CACHE).then(c=>c.put(e.request,cl))}return res}).catch(()=>caches.match(self.location.href)))});
+  `;
+  const blob=new Blob([SW_CODE],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// PWA Install prompt
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;
+  const bar=document.createElement('div');
+  bar.id='pwa-bar';
+  bar.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#6d28d9;color:#fff;font-family:system-ui;font-size:14px;box-shadow:0 -4px 20px rgba(0,0,0,.15)';
+  bar.innerHTML='<span>📱 Инсталирай като приложение за бърз достъп</span><div style="display:flex;gap:8px"><button id="pwa-install" style="padding:6px 16px;border-radius:8px;background:#fff;color:#6d28d9;font-weight:600;border:none;cursor:pointer;font-size:13px">Инсталирай</button><button id="pwa-dismiss" style="padding:6px 12px;border-radius:8px;background:transparent;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.3);cursor:pointer;font-size:13px">Не сега</button></div>';
+  document.body.appendChild(bar);
+  document.getElementById('pwa-install').onclick=()=>{deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;bar.remove()})};
+  document.getElementById('pwa-dismiss').onclick=()=>bar.remove();
+});
+</script>
+</body>
+</html>
