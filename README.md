@@ -166,8 +166,6 @@ SVG shield + pie chart + diamond accent.
 
 ## Персонална страница
 
-Newsreader + Outfit, топла палитра. Hero → За мен (2 карти) → Проекти (тъмна секция) → Контакт (LinkedIn + email).
-
 LinkedIn: `https://www.linkedin.com/in/tsvetanpetrov/`
 
 ---
